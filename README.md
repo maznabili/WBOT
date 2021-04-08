@@ -16,6 +16,13 @@
 <a href="#goals">Goals</a> •
 <a href="#faq">FAQ</a>
 
+## ✨Update 30th Mar 2021
+Started as small side project, WBOT has become essential tool for small business owners who runs their business on whatsapp. WBOT helps them simplify business transitions by saving time and resources. I am overwhelmed by the support I received from all people on my email and telegram. I will continue updating WBOT. 
+
+Thank you 🙏
+
+
+
 ## 🔍 Preview 
 
 ### Quick preview
@@ -33,6 +40,7 @@
 * 🎨 Highly customizable json
 * 💯 Totally Free for personal use
 * 🔒 Complete Privacy. Your data stays with you always
+* 💻 Download media files automatically
 * 👥 Multiple instances 
 
 ## ⬇ Downloads ⬇
@@ -87,6 +95,10 @@ This is where all the application related (node application behavior and such th
 - **headless** whether to start chrome as headless or not. this is regarding #4. Apparently, Whatsapp doesn't allow headless instances.
 - **isGroupReply** whether to send replies in group or not. If set to false, Bot will not reply if message received in group chat.
 
+- **webhook** A URL which will be called for every message with payload data. this can be useful if you want do other operation over messages in your server. for example server code take a look [here](https://github.com/vasani-arpit/WBOT/blob/master/docs/Webhook-example.md)
+
+- **downloadMedia** Whether to download incoming message media or not. 
+
 **bot**
 
 An array of objects. Properties of Object are self explanatory. 
@@ -94,7 +106,7 @@ An array of objects. Properties of Object are self explanatory.
 - **Contains** If message has one of that word anywhere in the message
 - **exact** If message is exactly as one of the messages form array
 
-- **Response** If any of the above conditions becomes true then corresponding response string or [spintax](https://spintaxtool.appspot.com/) will be sent as message to the user or group.
+- **Response** If any of the above conditions becomes true then corresponding response string or [spintax](https://spintaxtool.appspot.com/) will be sent as message to the user or group. there is two variables name and phoneNumber which you can use to create custom message for sender. sample message with variable is in `bot.json`
 
 - **file** name of the file (from current directory) which you want to send along with response 
 
@@ -128,10 +140,18 @@ Now download and run the latest code from github by:
 ```
 git clone https://github.com/vasani-arpit/WBOT.git
 cd WBOT
+npm install
 node src/index.js
 ```
 
 If you run Linux on a headless server or wan't to run chmomium without visible display try ```xvfb-run wbot-linux```.
+
+## Known bugs
+Sometimes, closing the `node` server directly does not clear browser cache. Next time when the bot is started, it runs into errors due to which smart reply is not setup correctly. A temporary fix to this is to clear `node` cache.
+
+```java-script 
+npm cache clean
+```
 
 
 ## 💻 Technologies
@@ -151,7 +171,7 @@ With that in mind, I know that WBOT would need to satisfy these criteria:
 * 🔒 Does not touch user’s data
 * 💰 Free! for personal use
 
-If you think WBOT delivers these, let me know by putting a star ⭐ on this project
+If you think WBOT delivers these, let me know by putting a **star ⭐** on this project
 
 
 ## FAQ

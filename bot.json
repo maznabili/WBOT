@@ -2,7 +2,8 @@
     "appconfig": {
         "headless": false,
         "isGroupReply":false,
-        "webhook":""
+        "webhook":"",
+        "downloadMedia": false
     },
     "bot": [{
             "contains": [],
@@ -65,13 +66,18 @@
             "contains": [],
             "exact": ["github"],
             "response": "Git Hub Logo",
-            "file":"github.png"
+            "file":"{github.png|github-two.png}"
+        },
+        {
+            "contains": [],
+            "exact": ["variables"],
+            "response": "this is sample of variables:\nHey [#name] 👋, [#greetings]. \nThis is your phone number, [#phoneNumber]"
         }
     ],
     "blocked": [],
     "noMatch":"{🤔|👍}",
     "smartreply":{
-        "suggestions":[],
+        "suggestions":["Hello", "Welcome to my store !!", "Thanks for reaching out 🙏"],
         "clicktosend":true
     }
 }
