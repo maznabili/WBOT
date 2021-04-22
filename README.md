@@ -99,6 +99,8 @@ This is where all the application related (node application behavior and such th
 
 - **downloadMedia** Whether to download incoming message media or not. 
 
+- **replyUnreadMsg** If there are pending unread messages which bot hasn't replied to then by making this flag true bot will respond to those messages. Keep in mind that bot will not be able to mark those messages as read/seen. Please open the chat manually in the phone to mark that chat as read other wise bot will reply to it at every start. 
+
 **bot**
 
 An array of objects. Properties of Object are self explanatory. 
@@ -109,6 +111,8 @@ An array of objects. Properties of Object are self explanatory.
 - **Response** If any of the above conditions becomes true then corresponding response string or [spintax](https://spintaxtool.appspot.com/) will be sent as message to the user or group. there is two variables name and phoneNumber which you can use to create custom message for sender. sample message with variable is in `bot.json`
 
 - **file** name of the file (from current directory) which you want to send along with response 
+
+- **afterSeconds** number of seconds bot should wait before sending a reply. 
 
 **Blocked**
 
