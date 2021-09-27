@@ -85,6 +85,39 @@ async function waitBeforeSending(exactMatch, PartialMatch) {
     }
 }
 
+async function processWebhook(webhook, message, body) {
+    //if message is image then download it first and then call an webhook
+    if (message.type == "image") {
+        body.base64DataFile = await downloadFile(message)
+    }
+    fetch(webhook, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then((resp) => resp.json()).then(function (response) {
+        //response received from server
+        console.log(response);
+        WAPI.sendSeen(message.chatId._serialized);
+        //replying to the user based on response
+        if (response && response.length > 0) {
+            response.forEach(itemResponse => {
+                itemResponse.text = itemResponse.text.fillVariables({ name: message.sender.pushname, phoneNumber: message.sender.id.user, greetings: greetings() });
+                WAPI.sendMessage2(message.chatId._serialized, itemResponse.text);
+                //sending files if there is any 
+                if (itemResponse.files && itemResponse.files.length > 0) {
+                    itemResponse.files.forEach((itemFile) => {
+                        WAPI.sendImage(itemFile.file, message.chatId._serialized, itemFile.name);
+                    })
+                }
+            });
+        }
+    }).catch(function (error) {
+        console.log(error);
+    });
+}
+
 async function processMessages(data) {
     for (let i = 0; i < data.length; i++) {
         //fetch API to send and receive response from server
@@ -97,37 +130,10 @@ async function processMessages(data) {
         if (intents.appconfig.downloadMedia) {
             downloadFile(message)
         }
+        //global webhook, this will be called no matter what if this is not blank
         if (intents.appconfig.webhook) {
-            //if message is image then download it first and then call an webhook
-            if (message.type == "image") {
-                body.base64DataFile = await downloadFile(message)
-            }
-            fetch(intents.appconfig.webhook, {
-                method: "POST",
-                body: JSON.stringify(body),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then((resp) => resp.json()).then(function (response) {
-                //response received from server
-                console.log(response);
-                WAPI.sendSeen(message.chatId._serialized);
-                //replying to the user based on response
-                if (response && response.length > 0) {
-                    response.forEach(itemResponse => {
-                        itemResponse.text = itemResponse.text.fillVariables({ name: message.sender.pushname, phoneNumber: message.sender.id.user, greetings: greetings() });
-                        WAPI.sendMessage2(message.chatId._serialized, itemResponse.text);
-                        //sending files if there is any 
-                        if (itemResponse.files && itemResponse.files.length > 0) {
-                            itemResponse.files.forEach((itemFile) => {
-                                WAPI.sendImage(itemFile.file, message.chatId._serialized, itemFile.name);
-                            })
-                        }
-                    });
-                }
-            }).catch(function (error) {
-                console.log(error);
-            });
+            window.log("Processing global webhook")
+            processWebhook(intents.appconfig.webhook, message, body)
         }
         window.log(`Message from ${message.chatId.user} checking..`);
         if (intents.blocked.indexOf(message.chatId.user) >= 0) {
@@ -163,15 +169,38 @@ async function processMessages(data) {
                 //sending file if there is any
                 if ((exactMatch || PartialMatch).file != undefined) {
                     files = await resolveSpintax((exactMatch || PartialMatch).file);
-                    window.getFile(files).then((base64Data) => {
-                        console.log(base64Data);
-                        WAPI.sendImage(base64Data, message.chatId._serialized, (exactMatch || PartialMatch).file, response);
-                    }).catch((error) => {
-                        window.log("Error in sending file\n" + error);
-                    })
+                    //determining how to send the text. via caption or via separate message
+                    if ((exactMatch || PartialMatch).responseAsCaption != undefined) {
+                        let caption = ""
+                        if ((exactMatch || PartialMatch).responseAsCaption == true) {
+                            caption = response
+                        }
+                        window.getFile(files).then((base64Data) => {
+                            console.log(base64Data);
+                            WAPI.sendImage(base64Data, message.chatId._serialized, (exactMatch || PartialMatch).file, caption);
+                        }).catch((error) => {
+                            window.log("Error in sending file\n" + error);
+                        })
+                    } else {
+                        window.log("Please mention how to send the response text. add responseAsCaption in bot.json's image block.")
+                    }
+                }
+                //TODO: refactor this later
+                if ((exactMatch || PartialMatch).responseAsCaption == undefined) {
+                    WAPI.sendMessage2(message.chatId._serialized, response);
+                } else {
+                    if ((exactMatch || PartialMatch).responseAsCaption == false) {
+                        WAPI.sendMessage2(message.chatId._serialized, response);
+                    }
+                }
+
+                //call a webhook if there is one in (exactMatch || PartialMatch)
+                if ((exactMatch || PartialMatch).webhook) {
+                    //okay there is a webhook so let's call it
+                    window.log("Processing webhook from block")
+                    processWebhook((exactMatch || PartialMatch).webhook, message, body)
                 }
             }
-            WAPI.sendMessage2(message.chatId._serialized, response);
         }
     }
 }
